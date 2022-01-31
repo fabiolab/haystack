@@ -50,15 +50,15 @@ def main():
         st.session_state.raw_json = None
 
     # Title
-    st.write("# Haystack Demo - Explore the world")
+    st.write("# Computer Science Q/A")
     st.markdown("""
-This demo takes its data from a selection of Wikipedia pages crawled in November 2021 on the topic of
+This demo takes its data from a set of documents, dealing with 
 
-<h3 style='text-align:center;padding: 0 0 1rem;'>Countries and capital cities</h3>
+<h3 style='text-align:center;padding: 0 0 1rem;'>Computer Science</h3>
 
-Ask any question on this topic and see if Haystack can find the correct answer to your query!
+Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, networks, ...!
 
-*Note: do not use keywords, but full-fledged questions.* The demo is not optimized to deal with keyword queries and might misunderstand you.
+*Note: do not use keywords, but full-fledged questions.* The stack is not optimized to deal with keyword queries and might misunderstand you.
 """, unsafe_allow_html=True)
 
     # Sidebar
