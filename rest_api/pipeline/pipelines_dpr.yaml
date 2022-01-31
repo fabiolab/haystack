@@ -5,6 +5,7 @@ components:    # define all the building-blocks for Pipeline
     type: ElasticsearchDocumentStore  # consider using MilvusDocumentStore or WeaviateDocumentStore for scaling to large number of documents
     params:
       host: localhost
+      index: dpr_doc
   - name: Retriever
     type: DensePassageRetriever
     params:
