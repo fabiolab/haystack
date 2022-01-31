@@ -5,6 +5,7 @@ components:    # define all the building-blocks for Pipeline
     type: ElasticsearchDocumentStore
     params:
       host: localhost
+      index: basic_doc
   - name: Retriever
     type: ElasticsearchRetriever
     params:
@@ -14,6 +15,7 @@ components:    # define all the building-blocks for Pipeline
     type: FARMReader    # Haystack Class name for the component
     params:
       model_name_or_path: deepset/roberta-base-squad2
+      #model_name_or_path: deepset/xlm-roberta-large-squad2
       context_window_size: 500
       return_no_answer: true
   - name: TextFileConverter
@@ -23,8 +25,12 @@ components:    # define all the building-blocks for Pipeline
   - name: Preprocessor
     type: PreProcessor
     params:
+      clean_empty_lines: true
+      clean_whitespace: true
+      clean_header_footer: true
       split_by: word
-      split_length: 1000
+      split_length: 200
+      split_respect_sentence_boundary: true
   - name: FileTypeClassifier
     type: FileTypeClassifier
 

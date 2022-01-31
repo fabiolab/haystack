@@ -8,7 +8,8 @@ from uuid import uuid4
 import streamlit as st
 
 
-API_ENDPOINT = os.getenv("API_ENDPOINT", "http://localhost:8000")
+#API_ENDPOINT = os.getenv("API_ENDPOINT", "http://localhost:8000")
+API_ENDPOINT = "http://yd-deskin-demo.rd.francetelecom.fr:8000"
 STATUS = "initialized"
 HS_VERSION = "hs_version"
 DOC_REQUEST = "query"

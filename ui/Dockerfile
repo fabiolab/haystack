@@ -1,5 +1,12 @@
 FROM python:3.7.4-stretch
 
+ENV HTTPS_PROXY=http://proxy.rd.francetelecom.fr:8080
+ENV HTTP_PROXY=http://proxy.rd.francetelecom.fr:8080
+#ENV HTTP_PROXY=http://10.193.21.110:8080
+ENV https_proxy=http://proxy.rd.francetelecom.fr:8080
+ENV http_proxy=http://proxy.rd.francetelecom.fr:8080
+ENV NO_PROXY=registry.gitlab.tech.orange,registry.forge.orange-labs.fr,localhost,127.0.0.1,.rd.francetelecom.fr,yd-deskin-demo.rd.francetelecom.fr
+
 WORKDIR /home/user
 
 RUN apt-get update && apt-get install -y curl git pkg-config cmake
