@@ -71,7 +71,7 @@ RUN python3 -c "from haystack.utils.docker import cache_models;cache_models()"
 #COPY qa.db /home/user/
 
 # optional: copy data directory containing docs for ingestion
-COPY data /home/user/data
+# COPY data /home/user/data
 
 EXPOSE 8000
 
