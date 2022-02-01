@@ -19,6 +19,7 @@ RUN mkdir -p /home/user/file-upload && chmod 777 /home/user/file-upload
 RUN apt-get update && apt-get install -y software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get install -y \
+    	nano \
         cmake \
         curl \
         git \
