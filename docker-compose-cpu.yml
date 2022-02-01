@@ -41,7 +41,8 @@ services:
       - 8501:8501
     restart: on-failure
     environment:
-      - API_ENDPOINT=http://haystack-api:8000
+      # - API_ENDPOINT=http://haystack-api:8000
+      - API_ENDPOINT=http://http://yd-deskin-demo.rd.francetelecom.fr:8000
       - EVAL_FILE=eval_labels_example.csv
       # The value fot the following variables will be read from the host, if present.
       # They can also be temporarily set for docker-compose, for example:
