@@ -10,6 +10,7 @@ ENV NO_PROXY=registry.gitlab.tech.orange,registry.forge.orange-labs.fr,localhost
 WORKDIR /home/user
 
 RUN apt-get update && apt-get install -y \
+    nano \
     curl  \
     git  \
     pkg-config  \
@@ -49,6 +50,8 @@ COPY rest_api /home/user/rest_api
 
 # optional: copy data directory containing docs for ingestion
 #COPY data /home/user/data
+COPY data /home/user/data/
+COPY feed-the-beast.py /home/user/
 
 EXPOSE 8000
 
