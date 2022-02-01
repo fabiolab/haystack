@@ -42,8 +42,8 @@ services:
     restart: on-failure
     environment:
       - discovery.type=single-node
-    volumes:
-      - ./elastic_data:/usr/share/elasticsearch/data
+    #volumes:
+    #  - ./elastic_data:/usr/share/elasticsearch/data
 
   ui:
     build:
