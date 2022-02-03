@@ -25,6 +25,7 @@ from haystack.document_stores.elasticsearch import ElasticsearchDocumentStore
 from haystack.nodes import DensePassageRetriever
 from haystack.nodes.file_converter.pdf import PDFToTextConverter
 from haystack.nodes.preprocessor import PreProcessor
+from loguru import logger
 
 
 class IndexName(str, Enum):
@@ -40,7 +41,6 @@ app = typer.Typer()
 @app.command()
 def feeder(index_name: IndexName = typer.Option(IndexName.basic, case_sensitive=False),
            clear_index: bool = typer.Option(True)):
-    logger = logging.getLogger(__name__)
 
     # ## Document Store
     # Connect to Elasticsearch

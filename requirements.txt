@@ -1,14 +1,14 @@
 # basics
-setuptools
+setuptools~=57.0.0
 wheel
 # PyTorch
 # Temp. disabled the next line as it gets currently resolved to https://download.pytorch.org/whl/rocm3.8/torch-1.7.1%2Brocm3.8-cp38-cp38-linux_x86_64.whl
 # --find-links=https://download.pytorch.org/whl/torch_stable.html
 torch>1.9,<1.11
 # progress bars in model download and training scripts
-tqdm
+tqdm~=4.62.3
 # Used for downloading models over HTTP
-requests
+requests~=2.27.1
 # Scipy & sklearn for stats in run_classifier
 scipy>=1.3.2
 scikit-learn>=1.0.0
@@ -27,7 +27,7 @@ psutil
 fastapi
 uvicorn
 gunicorn
-pandas
+pandas~=1.4.0
 psycopg2-binary; sys_platform != 'win32' and sys_platform != 'cygwin'
 elasticsearch>=7.7,<=7.10
 elastic-apm
@@ -48,7 +48,7 @@ faiss-cpu>=1.6.3
 tika
 uvloop==0.14; sys_platform != 'win32' and sys_platform != 'cygwin'
 httptools
-nltk
+nltk~=3.6.7
 more_itertools
 networkx
 # Refer milvus version support matrix at https://github.com/milvus-io/pymilvus#install-pymilvus
@@ -66,3 +66,10 @@ quantulum3
 azure-ai-formrecognizer==3.2.0b2
 setuptools~=57.0.0
 typer~=0.4.0
+
+numpy~=1.22.1
+tokenizers~=0.10.3
+PyYAML~=6.0
+pydantic~=1.9.0
+starlette~=0.17.1
+loguru~=0.6.0
