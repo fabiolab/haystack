@@ -17,27 +17,40 @@
 import glob
 import logging
 import os
+from enum import Enum
 
-from haystack.nodes import DensePassageRetriever
-from haystack.nodes.preprocessor import PreProcessor
-from haystack.nodes.file_converter.pdf import PDFToTextConverter
+import typer
 
 from haystack.document_stores.elasticsearch import ElasticsearchDocumentStore
+from haystack.nodes import DensePassageRetriever
+from haystack.nodes.file_converter.pdf import PDFToTextConverter
+from haystack.nodes.preprocessor import PreProcessor
 
+
+class IndexName(str, Enum):
+    basic = "basic_doc"
+    dpr = "dpr"
+
+
+ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
 SOURCE_FOLDER = "data"
+app = typer.Typer()
 
 
-def feeder():
+@app.command()
+def feeder(index_name: IndexName = typer.Option(IndexName.basic, case_sensitive=False),
+           clear_index: bool = typer.Option(True)):
     logger = logging.getLogger(__name__)
+
     # ## Document Store
     # Connect to Elasticsearch
-    document_store = ElasticsearchDocumentStore(host="yd-deskin-demo.rd.francetelecom.fr", username="", password="", index="dpr_doc")
-    document_store.delete_all_documents(index="dpr_doc")
+    document_store = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index_name.name)
+
+    if clear_index:
+        document_store.delete_documents(index=index_name.name)
 
     # ## Preprocessing of documents
-
     converter = PDFToTextConverter(remove_numeric_tables=True, valid_languages=["fr", "en"])
-
     processor = PreProcessor(clean_empty_lines=True,
                              clean_whitespace=True,
                              clean_header_footer=True,
@@ -57,7 +70,6 @@ def feeder():
         # the "name" field will be used by DPR if embed_title=True, rest is custom and can be named arbitrarily
         cur_meta = {"name": file, "category": "a"}
 
-        # Run the conversion on each file (PDF -> 1x doc)icilement compatibles avec ceux de l’ASSE. Bosser à quatre heures du matin, c’est rater l'entraînement. Démarrer à midi, c’est souvent arriver en retard au travail. Sauf qu’un dénommé Roger Berne va lui donner un sacré coup de pouce. A l'usine, ce dernier accepte de prendre les horaires du matin pour permettre à Aimé d'embaucher à la mi-journée et de poursuivre son rêve. Parfois, l'ami Berne poi
         d = converter.convert(file, meta=cur_meta, encoding="UTF-8")
 
         # clean and split each dict (1x doc -> multiple docs)
@@ -72,24 +84,26 @@ def feeder():
     # Now, let's write the docs to our DB.
     document_store.write_documents(docs)
 
-    ### Retriever
-    retriever = DensePassageRetriever(document_store=document_store,
-                                      query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
-                                      passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
-                                      max_seq_len_query=64,
-                                      max_seq_len_passage=128,
-                                      batch_size=2,
-                                      use_gpu=True,
-                                      embed_title=True,
-                                      use_fast_tokenizers=True
-                                      )
+    if index_name == IndexName.dpr:
+        ### Retriever
+        retriever = DensePassageRetriever(document_store=document_store,
+                                          query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
+                                          passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
+                                          max_seq_len_query=64,
+                                          max_seq_len_passage=128,
+                                          batch_size=2,
+                                          use_gpu=True,
+                                          embed_title=True,
+                                          use_fast_tokenizers=True
+                                          )
 
-    # Important:
-    # Now that after we have the DPR initialized, we need to call update_embeddings() to iterate over all
-    # previously indexed documents and update their embedding representation.
-    # While this can be a time consuming operation (depending on corpus size), it only needs to be done once.
-    # At query time, we only need to embed the query and compare it the existing doc embeddings which is very fast.
-    document_store.update_embeddings(retriever)
+        # Important:
+        # Now that after we have the DPR initialized, we need to call update_embeddings() to iterate over all
+        # previously indexed documents and update their embedding representation.
+        # While this can be a time consuming operation (depending on corpus size), it only needs to be done once.
+        # At query time, we only need to embed the query and compare it the existing doc embeddings which is very fast.
+        document_store.update_embeddings(retriever)
+
 
 if __name__ == "__main__":
-    feeder()
+    typer.run(feeder)
