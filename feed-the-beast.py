@@ -29,8 +29,8 @@ from loguru import logger
 
 
 class IndexName(str, Enum):
-    basic = "basic_doc"
-    dpr = "dpr"
+    sparse = "sparse"
+    dense = "dense"
 
 
 ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
@@ -39,7 +39,7 @@ app = typer.Typer()
 
 
 @app.command()
-def feeder(index_name: IndexName = typer.Option(IndexName.basic, case_sensitive=False),
+def feeder(index_name: IndexName = typer.Option(IndexName.sparse, case_sensitive=False),
            clear_index: bool = typer.Option(True)):
 
     # ## Document Store
@@ -51,6 +51,9 @@ def feeder(index_name: IndexName = typer.Option(IndexName.basic, case_sensitive=
 
     # ## Preprocessing of documents
     converter = PDFToTextConverter(remove_numeric_tables=True, valid_languages=["fr", "en"])
+
+    # TODO: Vérifier les paramètres de préprocessing. Split length => 200 ? Split_by "passage" ?
+    # https://haystack.deepset.ai/components/preprocessing
     processor = PreProcessor(clean_empty_lines=True,
                              clean_whitespace=True,
                              clean_header_footer=True,
@@ -84,7 +87,7 @@ def feeder(index_name: IndexName = typer.Option(IndexName.basic, case_sensitive=
     # Now, let's write the docs to our DB.
     document_store.write_documents(docs)
 
-    if index_name == IndexName.dpr:
+    if index_name == IndexName.dense:
         ### Retriever
         retriever = DensePassageRetriever(document_store=document_store,
                                           query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
