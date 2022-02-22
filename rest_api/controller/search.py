@@ -55,8 +55,13 @@ def haystack_version():
 @router.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
 def query(request: QueryRequest, is_dense: bool = False):
     with concurrency_limiter.run():
-        the_pipeline = PIPELINE_DENSE if is_dense else PIPELINE
-        logger.info(f"Using the index {the_pipeline.get_document_store().index}")
+        the_pipeline = PIPELINE
+        if is_dense:
+            the_pipeline = PIPELINE_DENSE
+            logger.info(f"Using the index dense")
+        else:
+            logger.info(f"Using the index sparse")
+
         result = _process_request(the_pipeline, request)
         return result
 
