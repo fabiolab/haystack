@@ -30,7 +30,7 @@ components:    # define all the building-blocks for Pipeline
     type: FileTypeClassifier
 
 pipelines:
-  - name: query    # a sample extractive-qa Pipeline
+  - name: query_dense    # a sample extractive-qa Pipeline
     type: Query
     nodes:
       - name: Retriever
