@@ -40,14 +40,14 @@ def haystack_version():
     return requests.get(url, timeout=0.1).json()["hs_version"]
 
 
-def query(query, filters={}, top_k_reader=5, top_k_retriever=5) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+def query(query, filters={}, top_k_reader=5, top_k_retriever=5, is_dense: bool=False) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     """
     Send a query to the REST API and parse the answer.
     Returns both a ready-to-use representation of the results and the raw JSON.
     """
 
     url = f"{API_ENDPOINT}/{DOC_REQUEST}"
-    params = {"filters": filters, "Retriever": {"top_k": top_k_retriever}, "Reader": {"top_k": top_k_reader}}
+    params = {"filters": filters, "Retriever": {"top_k": top_k_retriever}, "Reader": {"top_k": top_k_reader}, "is_dense": is_dense}
     req = {"query": query, "params": params}
     response_raw = requests.post(url, json=req)
 

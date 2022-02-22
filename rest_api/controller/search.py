@@ -7,7 +7,7 @@ from fastapi import APIRouter
 
 import haystack
 from haystack.pipelines.base import Pipeline
-from rest_api.config import PIPELINE_YAML_PATH, QUERY_PIPELINE_NAME
+from rest_api.config import PIPELINE_DENSE_YAML_PATH, PIPELINE_YAML_PATH, QUERY_PIPELINE_DENSE_NAME, QUERY_PIPELINE_NAME
 from rest_api.config import LOG_LEVEL, CONCURRENT_REQUEST_PER_WORKER
 from rest_api.schema import QueryRequest, QueryResponse
 from rest_api.controller.utils import RequestLimiter
@@ -24,6 +24,8 @@ router = APIRouter()
 
 
 PIPELINE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
+PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
+
 # TODO make this generic for other pipelines with different naming
 RETRIEVER = PIPELINE.get_node(name="Retriever")
 DOCUMENT_STORE = RETRIEVER.document_store if RETRIEVER else None
@@ -51,9 +53,11 @@ def haystack_version():
 
 
 @router.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
-def query(request: QueryRequest):
+def query(request: QueryRequest, is_dense: bool = False):
     with concurrency_limiter.run():
-        result = _process_request(PIPELINE, request)
+        the_pipeline = PIPELINE_DENSE if is_dense else PIPELINE
+        logger.info(f"Using the index {the_pipeline.get_document_store().index}")
+        result = _process_request(the_pipeline, request)
         return result
 
 

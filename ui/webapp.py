@@ -77,6 +77,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         value=DEFAULT_DOCS_FROM_RETRIEVER,
         step=1,
         on_change=reset_results)
+    is_dense = st.sidebar.checkbox("Use dense ES index")
     eval_mode = st.sidebar.checkbox("Evaluation mode")
     debug = st.sidebar.checkbox("Show debug info")
 
@@ -179,7 +180,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         ):
             try:
                 st.session_state.results, st.session_state.raw_json = query(question, top_k_reader=top_k_reader,
-                                                                            top_k_retriever=top_k_retriever)
+                                                                            top_k_retriever=top_k_retriever, is_dense=is_dense)
             except JSONDecodeError as je:
                 st.error("👓 &nbsp;&nbsp; An error occurred reading the results. Is the document store working?")
                 return
