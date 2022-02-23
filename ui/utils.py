@@ -47,7 +47,7 @@ def query(query, filters={}, top_k_reader=5, top_k_retriever=5, is_dense: bool=F
     """
 
     url = f"{API_ENDPOINT}/{DOC_REQUEST}"
-    params = {"filters": filters, "Retriever": {"top_k": top_k_retriever}, "Reader": {"top_k": top_k_reader}, "is_dense": is_dense}
+    params = {"filters": filters, "Retriever": {"top_k": top_k_retriever}, "Reader": {"top_k": top_k_reader}}
     req = {"query": query, "params": params}
     response_raw = requests.post(url, json=req)
 

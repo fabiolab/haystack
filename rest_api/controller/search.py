@@ -77,6 +77,7 @@ def _process_request(pipeline, request) -> QueryResponse:
 
     # format targeted node filters (e.g. "params": {"Retriever": {"filters": {"value"}}})
     for key, value in params.items():
+        logger.info(f"process {key}, {value} => {params[key]}")
         if "filters" in params[key].keys():
             params[key]["filters"] = _format_filters(params[key]["filters"])
 
