@@ -43,7 +43,7 @@ services:
     environment:
       - discovery.type=single-node
     volumes:
-      - esdata:/usr/share/elasticsearch/data:rw
+      - ./esdata:/usr/share/elasticsearch/data:rw
 
   ui:
     build:
@@ -65,3 +65,6 @@ services:
       - DEFAULT_DOCS_FROM_RETRIEVER
       - DEFAULT_NUMBER_OF_ANSWERS
     command: "/bin/bash -c 'sleep 15 && streamlit run webapp.py'"
+
+volumes:
+  esdata:
