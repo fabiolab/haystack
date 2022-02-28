@@ -1,7 +1,10 @@
+from typing import Dict, Any
+
 import logging
 import time
 import json
 from pathlib import Path
+from numpy import ndarray
 
 from fastapi import APIRouter
 
@@ -28,7 +31,7 @@ PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipelin
 
 # TODO make this generic for other pipelines with different naming
 RETRIEVER = PIPELINE.get_node(name="Retriever")
-DOCUMENT_STORE = RETRIEVER.document_store if RETRIEVER else None
+DOCUMENT_STORE = RETRIEVER.get_document_store() if RETRIEVER else None
 logging.info(f"Loaded pipeline nodes: {PIPELINE.graph.nodes.keys()}")
 
 concurrency_limiter = RequestLimiter(CONCURRENT_REQUEST_PER_WORKER)
@@ -38,7 +41,7 @@ logging.info("Concurrent requests per worker: {CONCURRENT_REQUEST_PER_WORKER}")
 @router.get("/initialized")
 def check_status():
     """
-    This endpoint can be used during startup to understand if the 
+    This endpoint can be used during startup to understand if the
     server is ready to take any requests, or is still loading.
 
     The recommended approach is to call this endpoint with a short timeout,
@@ -49,11 +52,18 @@ def check_status():
 
 @router.get("/hs_version")
 def haystack_version():
+    """
+    Get the running Haystack version.
+    """
     return {"hs_version": haystack.__version__}
 
 
 @router.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
 def query(request: QueryRequest, is_dense: bool = False):
+    """
+    This endpoint receives the question as a string and allows the requester to set
+    additional parameters that will be passed on to the Haystack pipeline.
+    """
     with concurrency_limiter.run():
         the_pipeline = PIPELINE
         if is_dense:
@@ -66,9 +76,9 @@ def query(request: QueryRequest, is_dense: bool = False):
         return result
 
 
-def _process_request(pipeline, request) -> QueryResponse:
+def _process_request(pipeline, request) -> Dict[str, Any]:
     start_time = time.time()
-    
+
     params = request.params or {}
 
     # format global, top-level filters (e.g. "params": {"filters": {"name": ["some"]}})
@@ -76,15 +86,26 @@ def _process_request(pipeline, request) -> QueryResponse:
         params["filters"] = _format_filters(params["filters"])
 
     # format targeted node filters (e.g. "params": {"Retriever": {"filters": {"value"}}})
-    for key, value in params.items():
-        logger.info(f"process {key}, {value} => {params[key]}")
+    for key in params.keys():
         if "filters" in params[key].keys():
             params[key]["filters"] = _format_filters(params[key]["filters"])
 
-    result = pipeline.run(query=request.query, params=params,debug=request.debug)
-    end_time = time.time()
-    logger.info(json.dumps({"request": request, "response": result, "time": f"{(end_time - start_time):.2f}"}, default=str))
+    result = pipeline.run(query=request.query, params=params, debug=request.debug)
 
+    # Ensure answers and documents exist, even if they're empty lists
+    if not "documents" in result:
+        result["documents"] = []
+    if not "answers" in result:
+        result["answers"] = []
+
+    # if any of the documents contains an embedding as an ndarray the latter needs to be converted to list of float
+    for document in result["documents"]:
+        if isinstance(document.embedding, ndarray):
+            document.embedding = document.embedding.tolist()
+
+    logger.info(
+        json.dumps({"request": request, "response": result, "time": f"{(time.time() - start_time):.2f}"}, default=str)
+    )
     return result
 
 
@@ -95,17 +116,24 @@ def _format_filters(filters):
     """
     new_filters = {}
     if filters is None:
-        logger.warning(f"Request with deprecated filter format ('\"filters\": null'). "
-                       f"Remove empty filters from params to be compliant with future versions")
+        logger.warning(
+            f"Request with deprecated filter format ('\"filters\": null'). "
+            f"Remove empty filters from params to be compliant with future versions"
+        )
     else:
         for key, values in filters.items():
             if values is None:
-                logger.warning(f"Request with deprecated filter format ('{key}: null'). "
-                               f"Remove null values from filters to be compliant with future versions")
+                logger.warning(
+                    f"Request with deprecated filter format ('{key}: null'). "
+                    f"Remove null values from filters to be compliant with future versions"
+                )
                 continue
-            elif not isinstance(values, list):
-                logger.warning(f"Request with deprecated filter format ('{key}': {values}). "
-                               f"Change to '{key}':[{values}]' to be compliant with future versions")
+
+            if not isinstance(values, list):
+                logger.warning(
+                    f"Request with deprecated filter format ('{key}': {values}). "
+                    f"Change to '{key}':[{values}]' to be compliant with future versions"
+                )
                 values = [values]
 
             new_filters[key] = values

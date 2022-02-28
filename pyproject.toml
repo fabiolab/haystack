@@ -1,0 +1,105 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+
+[tool.black]
+line-length = 120
+
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length=120
+disable = [
+
+  # Warnings
+  "fixme",
+
+  # Info
+  "c-extension-no-member",
+
+
+
+
+  "missing-docstring",
+  "unused-argument",
+  "no-member",
+  "line-too-long",
+  "protected-access",
+  "too-few-public-methods",
+  "raise-missing-from",
+
+  "invalid-name",
+  "logging-fstring-interpolation",
+  "wrong-import-position",
+  "too-many-locals",
+  "duplicate-code",
+  "too-many-arguments",
+  "arguments-differ",
+  "wrong-import-order",
+  "consider-using-f-string",
+  "no-else-return",
+  "unused-variable",
+  "attribute-defined-outside-init",
+  "too-many-instance-attributes",
+  "no-self-use",
+  "super-with-arguments",
+  "anomalous-backslash-in-string",
+  "redefined-builtin",
+  "logging-format-interpolation",
+  "f-string-without-interpolation",
+  "abstract-method",
+  "too-many-branches",
+  "trailing-whitespace",
+  "unspecified-encoding",
+  "unidiomatic-typecheck",
+  "no-name-in-module",
+  "dangerous-default-value",
+  "unused-import",
+  "consider-using-with",
+  "redefined-outer-name",
+  "cyclic-import",
+  "arguments-renamed",
+  "unnecessary-pass",
+  "ungrouped-imports",
+  "broad-except",
+  "unnecessary-comprehension",
+  "subprocess-run-check",
+  "singleton-comparison",
+  "import-outside-toplevel",
+  "consider-iterating-dictionary",
+  "too-many-nested-blocks",
+  "undefined-loop-variable",
+  "too-many-statements",
+  "consider-using-in",
+  "bare-except",
+  "too-many-lines",
+  "unexpected-keyword-arg",
+  "simplifiable-if-expression",
+  "use-list-literal",
+  "reimported",
+  "deprecated-method",
+]
+[tool.pylint.'DESIGN']
+max-args=7
+[tool.pylint.'SIMILARITIES']
+min-similarity-lines=6
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "tika: marks tests which require tika container (deselect with '-m \"not tika\"')",
+    "elasticsearch: marks tests which require elasticsearch container (deselect with '-m \"not elasticsearch\"')",
+    "graphdb: marks tests which require graphdb container (deselect with '-m \"not graphdb\"')",
+    "generator: marks generator tests (deselect with '-m \"not generator\"')",
+    "pipeline: marks tests with pipeline",
+    "summarizer: marks summarizer tests",
+    "weaviate: marks tests that require weaviate container",
+    "embedding_dim: marks usage of document store with non-default embedding dimension (e.g @pytest.mark.embedding_dim(128))",
+]
+log_cli = true

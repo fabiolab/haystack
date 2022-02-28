@@ -1,6 +1,5 @@
 import os
 import sys
-
 import logging
 import pandas as pd
 from json import JSONDecodeError
@@ -9,7 +8,7 @@ import streamlit as st
 from annotated_text import annotation
 from markdown import markdown
 
-from utils import haystack_is_ready, query, send_feedback, upload_doc, haystack_version, get_backlink
+from ui.utils import haystack_is_ready, query, send_feedback, upload_doc, haystack_version, get_backlink
 
 
 # Adjust to a question that you would like users to see in the search bar when they load the UI:
@@ -17,11 +16,11 @@ DEFAULT_QUESTION_AT_STARTUP = os.getenv("DEFAULT_QUESTION_AT_STARTUP", "What's t
 DEFAULT_ANSWER_AT_STARTUP = os.getenv("DEFAULT_ANSWER_AT_STARTUP", "Paris")
 
 # Sliders
-DEFAULT_DOCS_FROM_RETRIEVER = int(os.getenv("DEFAULT_DOCS_FROM_RETRIEVER", 3))
-DEFAULT_NUMBER_OF_ANSWERS = int(os.getenv("DEFAULT_NUMBER_OF_ANSWERS", 3))
+DEFAULT_DOCS_FROM_RETRIEVER = int(os.getenv("DEFAULT_DOCS_FROM_RETRIEVER", "3"))
+DEFAULT_NUMBER_OF_ANSWERS = int(os.getenv("DEFAULT_NUMBER_OF_ANSWERS", "3"))
 
 # Labels for the evaluation
-EVAL_LABELS = os.getenv("EVAL_FILE", Path(__file__).parent / "eval_labels_example.csv")
+EVAL_LABELS = os.getenv("EVAL_FILE", str(Path(__file__).parent / "eval_labels_example.csv"))
 
 # Whether the file upload should be enabled or not
 DISABLE_FILE_UPLOAD = bool(os.getenv("DISABLE_FILE_UPLOAD"))
@@ -31,17 +30,17 @@ def set_state_if_absent(key, value):
     if key not in st.session_state:
         st.session_state[key] = value
 
+
 def main():
 
-    st.set_page_config(page_title='Haystack Demo', page_icon="https://haystack.deepset.ai/img/HaystackIcon.png")
+    st.set_page_config(page_title="Haystack Demo", page_icon="https://haystack.deepset.ai/img/HaystackIcon.png")
 
     # Persistent state
-    set_state_if_absent('question', DEFAULT_QUESTION_AT_STARTUP)
-    set_state_if_absent('answer', DEFAULT_ANSWER_AT_STARTUP)
-    set_state_if_absent('results', None)
-    set_state_if_absent('raw_json', None)
-    set_state_if_absent('random_question_requested', False)
-
+    set_state_if_absent("question", DEFAULT_QUESTION_AT_STARTUP)
+    set_state_if_absent("answer", DEFAULT_ANSWER_AT_STARTUP)
+    set_state_if_absent("results", None)
+    set_state_if_absent("raw_json", None)
+    set_state_if_absent("random_question_requested", False)
 
     # Small callback to reset the interface in case the text of the question changes
     def reset_results(*args):
@@ -53,11 +52,9 @@ def main():
     st.write("# Computer Science Q/A")
     st.markdown("""
 This demo takes its data from a set of documents, dealing with 
-
 <h3 style='text-align:center;padding: 0 0 1rem;'>Computer Science</h3>
 
 Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, networks, ...!
-
 *Note: do not use keywords, but full-fledged questions.* The stack is not optimized to deal with keyword queries and might misunderstand you.
 """, unsafe_allow_html=True)
 
@@ -69,7 +66,8 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         max_value=10,
         value=DEFAULT_NUMBER_OF_ANSWERS,
         step=1,
-        on_change=reset_results)
+        on_change=reset_results,
+    )
     top_k_retriever = st.sidebar.slider(
         "Max. number of documents from retriever",
         min_value=1,
@@ -100,7 +98,8 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
     except Exception:
         pass
 
-    st.sidebar.markdown(f"""
+    st.sidebar.markdown(
+        f"""
     <style>
         a {{
             text-decoration: none;
@@ -122,21 +121,23 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         <p>Get it on <a href="https://github.com/deepset-ai/haystack/">GitHub</a> &nbsp;&nbsp; - &nbsp;&nbsp; Read the <a href="https://haystack.deepset.ai/overview/intro">Docs</a></p>
         <small>Data crawled from <a href="https://en.wikipedia.org/wiki/Category:Lists_of_countries_by_continent">Wikipedia</a> in November 2021.<br />See the <a href="https://creativecommons.org/licenses/by-sa/3.0/">License</a> (CC BY-SA 3.0).</small>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Load csv into pandas dataframe
     try:
         df = pd.read_csv(EVAL_LABELS, sep=";")
     except Exception:
-        st.error(f"The eval file was not found. Please check the demo's [README](https://github.com/deepset-ai/haystack/tree/master/ui/README.md) for more information.")
-        sys.exit(f"The eval file was not found under `{EVAL_LABELS}`. Please check the README (https://github.com/deepset-ai/haystack/tree/master/ui/README.md) for more information.")
+        st.error(
+            f"The eval file was not found. Please check the demo's [README](https://github.com/deepset-ai/haystack/tree/master/ui/README.md) for more information."
+        )
+        sys.exit(
+            f"The eval file was not found under `{EVAL_LABELS}`. Please check the README (https://github.com/deepset-ai/haystack/tree/master/ui/README.md) for more information."
+        )
 
     # Search bar
-    question = st.text_input("",
-        value=st.session_state.question,
-        max_chars=100,
-        on_change=reset_results
-    )
+    question = st.text_input("", value=st.session_state.question, max_chars=100, on_change=reset_results)
     col1, col2 = st.columns(2)
     col1.markdown("<style>.stButton button {width:100%;}</style>", unsafe_allow_html=True)
     col2.markdown("<style>.stButton button {width:100%;}</style>", unsafe_allow_html=True)
@@ -148,7 +149,9 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
     if col2.button("Random question"):
         reset_results()
         new_row = df.sample(1)
-        while new_row["Question Text"].values[0] == st.session_state.question:  # Avoid picking the same question twice (the change is not visible on the UI)
+        while (
+            new_row["Question Text"].values[0] == st.session_state.question
+        ):  # Avoid picking the same question twice (the change is not visible on the UI)
             new_row = df.sample(1)
         st.session_state.question = new_row["Question Text"].values[0]
         st.session_state.answer = new_row["Answer"].values[0]
@@ -156,11 +159,12 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         # Re-runs the script setting the random question as the textbox value
         # Unfortunately necessary as the Random Question button is _below_ the textbox
         raise st.script_runner.RerunException(st.script_request_queue.RerunData(None))
-    else:
-        st.session_state.random_question_requested = False
-    
-    run_query = (run_pressed or question != st.session_state.question) and not st.session_state.random_question_requested
-    
+    st.session_state.random_question_requested = False
+
+    run_query = (
+        run_pressed or question != st.session_state.question
+    ) and not st.session_state.random_question_requested
+
     # Check the connection
     with st.spinner("⌛️ &nbsp;&nbsp; Haystack is starting..."):
         if not haystack_is_ready():
@@ -207,7 +211,10 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
                 start_idx = context.find(answer)
                 end_idx = start_idx + len(answer)
                 # Hack due to this bug: https://github.com/streamlit/streamlit/issues/3190
-                st.write(markdown(context[:start_idx] + str(annotation(answer, "ANSWER", "#8ef")) + context[end_idx:]), unsafe_allow_html=True)
+                st.write(
+                    markdown(context[:start_idx] + str(annotation(answer, "ANSWER", "#8ef")) + context[end_idx:]),
+                    unsafe_allow_html=True,
+                )
                 source = ""
                 url, title = get_backlink(result)
                 if url and title:
@@ -217,7 +224,9 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
                 st.markdown(f"**Relevance:** {result['relevance']} -  **Source:** {source}")
 
             else:
-                st.info("🤔 &nbsp;&nbsp; Haystack is unsure whether any of the documents contain an answer to your question. Try to reformulate it!")
+                st.info(
+                    "🤔 &nbsp;&nbsp; Haystack is unsure whether any of the documents contain an answer to your question. Try to reformulate it!"
+                )
                 st.write("**Relevance:** ", result["relevance"])
 
             if eval_mode and result["answer"]:
@@ -227,16 +236,18 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
 
                 button_col1, button_col2, button_col3, _ = st.columns([1, 1, 1, 6])
                 if button_col1.button("👍", key=f"{result['context']}{count}1", help="Correct answer"):
-                    is_correct_answer=True
-                    is_correct_document=True
+                    is_correct_answer = True
+                    is_correct_document = True
 
                 if button_col2.button("👎", key=f"{result['context']}{count}2", help="Wrong answer and wrong passage"):
-                    is_correct_answer=False
-                    is_correct_document=False
+                    is_correct_answer = False
+                    is_correct_document = False
 
-                if button_col3.button("👎👍", key=f"{result['context']}{count}3", help="Wrong answer, but correct passage"):
-                    is_correct_answer=False
-                    is_correct_document=True
+                if button_col3.button(
+                    "👎👍", key=f"{result['context']}{count}3", help="Wrong answer, but correct passage"
+                ):
+                    is_correct_answer = False
+                    is_correct_document = True
 
                 if is_correct_answer is not None and is_correct_document is not None:
                     try:
@@ -245,7 +256,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
                             answer_obj=result["_raw"],
                             is_correct_answer=is_correct_answer,
                             is_correct_document=is_correct_document,
-                            document=result["document"]
+                            document=result["document"],
                         )
                         st.success("✨ &nbsp;&nbsp; Thanks for your feedback! &nbsp;&nbsp; ✨")
                     except Exception as e:
@@ -257,5 +268,6 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         if debug:
             st.subheader("REST API JSON response")
             st.write(st.session_state.raw_json)
+
 
 main()

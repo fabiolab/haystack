@@ -1,10 +1,12 @@
+from typing import Dict, Union, Optional
+
 import json
 import logging
 
 from fastapi import APIRouter
-from rest_api.schema import FilterRequest, LabelSerialized
+from haystack.schema import Label
+from rest_api.schema import FilterRequest, LabelSerialized, CreateLabelSerialized
 from rest_api.controller.search import DOCUMENT_STORE
-
 
 router = APIRouter()
 
@@ -12,42 +14,68 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/feedback")
-def post_feedback(feedback: LabelSerialized):
+def post_feedback(feedback: Union[LabelSerialized, CreateLabelSerialized]):
+    """
+    This endpoint allows the API user to submit feedback on an answer for a particular query.
+
+    For example, the user can send feedback on whether the answer was correct and
+    whether the right snippet was identified as the answer.
+
+    Information submitted through this endpoint is used to train the underlying QA model.
+    """
+
     if feedback.origin is None:
         feedback.origin = "user-feedback"
-    DOCUMENT_STORE.write_labels([feedback])
+
+    label = Label(**feedback.dict())
+    DOCUMENT_STORE.write_labels([label])
 
 
 @router.get("/feedback")
 def get_feedback():
+    """
+    This endpoint allows the API user to retrieve all the feedback that has been submitted
+    through the `POST /feedback` endpoint.
+    """
     labels = DOCUMENT_STORE.get_all_labels()
     return labels
+
+
+@router.delete("/feedback")
+def delete_feedback():
+    """
+    This endpoint allows the API user to delete all the
+    feedback that has been sumbitted through the
+    `POST /feedback` endpoint
+    """
+    all_labels = DOCUMENT_STORE.get_all_labels()
+    user_label_ids = [label.id for label in all_labels if label.origin == "user-feedback"]
+    DOCUMENT_STORE.delete_labels(ids=user_label_ids)
 
 
 @router.post("/eval-feedback")
 def get_feedback_metrics(filters: FilterRequest = None):
     """
-    Return basic accuracy metrics based on the user feedback.
-    Which ratio of answers was correct? Which ratio of documents was correct?
-    You can supply filters in the request to only use a certain subset of labels.
+    This endpoint returns basic accuracy metrics based on user feedback,
+    e.g., the ratio of correct answers or correctly identified documents.
+    You can filter the output by document or label.
 
-    **Example:**
+    Example:
 
-        ```
-            | curl --location --request POST 'http://127.0.0.1:8000/eval-doc-qa-feedback' \
-            | --header 'Content-Type: application/json' \
-            | --data-raw '{ "filters": {"document_id": ["XRR3xnEBCYVTkbTystOB"]} }'
-
+    `curl --location --request POST 'http://127.0.0.1:8000/eval-doc-qa-feedback' \
+     --header 'Content-Type: application/json' \
+     --data-raw '{ "filters": {"document_id": ["XRR3xnEBCYVTkbTystOB"]} }'`
     """
 
     if filters:
-        filters = filters.filters
-        filters["origin"] = ["user-feedback"]
+        filters_content = filters.filters or {}
+        filters_content["origin"] = ["user-feedback"]
     else:
-        filters = {"origin": ["user-feedback"]}
+        filters_content = {"origin": ["user-feedback"]}
 
-    labels = DOCUMENT_STORE.get_all_labels(filters=filters)
+    labels = DOCUMENT_STORE.get_all_labels(filters=filters_content)
 
+    res: Dict[str, Optional[Union[float, int]]]
     if len(labels) > 0:
         answer_feedback = [1 if l.is_correct_answer else 0 for l in labels]
         doc_feedback = [1 if l.is_correct_document else 0 for l in labels]
@@ -66,7 +94,8 @@ def export_feedback(
     context_size: int = 100_000, full_document_context: bool = True, only_positive_labels: bool = False
 ):
     """
-    SQuAD format JSON export for question/answer pairs that were marked as "relevant".
+    This endpoint returns JSON output in the SQuAD format for question/answer pairs
+    that were marked as "relevant" by user feedback through the `POST /feedback` endpoint.
 
     The context_size param can be used to limit response size for large documents.
     """
@@ -94,7 +123,9 @@ def export_feedback(
             context_to_add = int((context_size - len(label.answer.answer)) / 2)
             start_pos = max(label.answer.offsets_in_document[0].start - context_to_add, 0)
             additional_context_at_end = max(context_to_add - label.answer.offsets_in_document[0].start, 0)
-            end_pos = min(label.answer.offsets_in_document[0].start + len(label.answer.answer) + context_to_add, len(text) - 1)
+            end_pos = min(
+                label.answer.offsets_in_document[0].start + len(label.answer.answer) + context_to_add, len(text) - 1
+            )
             additional_context_at_start = max(
                 label.answer.offsets_in_document[0].start + len(label.answer.answer) + context_to_add - len(text), 0
             )
@@ -135,7 +166,7 @@ def export_feedback(
             start = squad_label["paragraphs"][0]["qas"][0]["answers"][0]["answer_start"]
             answer = squad_label["paragraphs"][0]["qas"][0]["answers"][0]["text"]
             context = squad_label["paragraphs"][0]["context"]
-            if not context[start: start + len(answer)] == answer:
+            if not context[start : start + len(answer)] == answer:
                 logger.error(
                     f"Skipping invalid squad label as string via offsets "
                     f"('{context[start:start + len(answer)]}') does not match answer string ('{answer}') "

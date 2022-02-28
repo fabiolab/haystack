@@ -22,7 +22,7 @@ class RequestLimiter:
             self.semaphore.release()
 
 
-StringId = NewType('StringId', str)
+StringId = NewType("StringId", str)
 
 
 def as_form(cls: Type[BaseModel]):
@@ -44,6 +44,6 @@ def as_form(cls: Type[BaseModel]):
 
     sig = inspect.signature(_as_form)
     sig = sig.replace(parameters=new_params)
-    _as_form.__signature__ = sig
+    _as_form.__signature__ = sig  # type: ignore
     setattr(cls, "as_form", _as_form)
     return cls
