@@ -48,8 +48,10 @@ def query(query, filters={}, top_k_reader=5, top_k_retriever=5, is_dense: bool=F
 
     url = f"{API_ENDPOINT}/{DOC_REQUEST}"
     params = {"filters": filters, "Retriever": {"top_k": top_k_retriever}, "Reader": {"top_k": top_k_reader}}
+    query_params = {'is_dense': is_dense}
+
     req = {"query": query, "params": params}
-    response_raw = requests.post(url, json=req)
+    response_raw = requests.post(url, json=req, params=query_params)
 
     if response_raw.status_code >= 400 and response_raw.status_code != 503:
         raise Exception(f"{vars(response_raw)}")
