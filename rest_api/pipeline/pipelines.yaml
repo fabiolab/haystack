@@ -16,7 +16,7 @@ components:    # define all the building-blocks for Pipeline
     params:
       model_name_or_path: deepset/roberta-base-squad2
       #model_name_or_path: deepset/xlm-roberta-large-squad2
-      context_window_size: 500
+      context_window_size: 1000
       return_no_answer: true
   - name: TextFileConverter
     type: TextConverter
