@@ -5,7 +5,7 @@ components:    # define all the building-blocks for Pipeline
     type: ElasticsearchDocumentStore
     params:
       host: localhost
-      index: sparse
+      index: dense
   - name: Retriever
     type: ElasticsearchRetriever
     params:
