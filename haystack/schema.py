@@ -335,6 +335,7 @@ class Label:
     document: Document
     is_correct_answer: bool
     is_correct_document: bool
+    is_dense: bool
     origin: Literal["user-feedback", "gold-label"]
     answer: Optional[Answer] = None
     no_answer: Optional[bool] = None
