@@ -256,6 +256,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
                             answer_obj=result["_raw"],
                             is_correct_answer=is_correct_answer,
                             is_correct_document=is_correct_document,
+                            is_dense=is_dense,
                             document=result["document"],
                         )
                         st.success("✨ &nbsp;&nbsp; Thanks for your feedback! &nbsp;&nbsp; ✨")

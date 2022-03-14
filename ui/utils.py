@@ -89,7 +89,7 @@ def query(query, filters={}, top_k_reader=5, top_k_retriever=5, is_dense: bool=F
     return results, response
 
 
-def send_feedback(query, answer_obj, is_correct_answer, is_correct_document, document) -> None:
+def send_feedback(query, answer_obj, is_correct_answer, is_correct_document, is_dense, document) -> None:
     """
     Send a feedback (label) to the REST API
     """
@@ -99,6 +99,7 @@ def send_feedback(query, answer_obj, is_correct_answer, is_correct_document, doc
         "document": document,
         "is_correct_answer": is_correct_answer,
         "is_correct_document": is_correct_document,
+        "is_dense": is_dense,
         "origin": "user-feedback",
         "answer": answer_obj,
     }
