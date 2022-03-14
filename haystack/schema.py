@@ -352,6 +352,7 @@ class Label:
         document: Document,
         is_correct_answer: bool,
         is_correct_document: bool,
+        is_dense: bool,
         origin: Literal["user-feedback", "gold-label"],
         answer: Optional[Answer],
         id: Optional[str] = None,
@@ -404,6 +405,7 @@ class Label:
         self.is_correct_answer = is_correct_answer
         self.is_correct_document = is_correct_document
         self.origin = origin
+        self.is_dense = is_dense
 
         # Remove
         # self.document_id = document_id
@@ -463,6 +465,7 @@ class Label:
             and getattr(other, "document", None) == self.document
             and getattr(other, "no_answer", None) == self.no_answer
             and getattr(other, "pipeline_id", None) == self.pipeline_id
+            and getattr(other, "is_dense", None) == self.is_dense
         )
 
     def __hash__(self):
@@ -475,6 +478,7 @@ class Label:
             + str(self.document)
             + str(self.no_answer)
             + str(self.pipeline_id)
+            + str(self.is_dense)
         )
 
     def __repr__(self):
