@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import logging
 import time
@@ -10,7 +10,9 @@ from fastapi import APIRouter
 
 import haystack
 from haystack.pipelines.base import Pipeline
-from rest_api.config import PIPELINE_DENSE_YAML_PATH, PIPELINE_YAML_PATH, QUERY_PIPELINE_DENSE_NAME, QUERY_PIPELINE_NAME
+from rest_api.config import PIPELINES_PATH, PIPELINE_DENSE_YAML_PATH, PIPELINE_WIKIPEDIA_YAML_PATH, PIPELINE_YAML_PATH, \
+    QUERY_PIPELINE_DENSE_NAME, \
+    QUERY_PIPELINE_NAME, QUERY_PIPELINE_WIKIPEDIA_NAME
 from rest_api.config import LOG_LEVEL, CONCURRENT_REQUEST_PER_WORKER
 from rest_api.schema import QueryRequest, QueryResponse
 from rest_api.controller.utils import RequestLimiter
@@ -28,6 +30,8 @@ router = APIRouter()
 
 PIPELINE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
 PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
+PIPELINE_WIKIPEDIA = Pipeline.load_from_yaml(Path(PIPELINE_WIKIPEDIA_YAML_PATH), pipeline_name=QUERY_PIPELINE_WIKIPEDIA_NAME)
+
 DOCUMENT_STORE = PIPELINE.get_document_store()
 logging.info(f"Loaded pipeline nodes: {PIPELINE.graph.nodes.keys()}")
 
@@ -56,18 +60,19 @@ def haystack_version():
 
 
 @router.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
-def query(request: QueryRequest, is_dense: bool = False):
+def query(request: QueryRequest, index: str = "sparse"):
     """
     This endpoint receives the question as a string and allows the requester to set
     additional parameters that will be passed on to the Haystack pipeline.
     """
     with concurrency_limiter.run():
         the_pipeline = PIPELINE
-        if is_dense:
+        if index == "dense":
             the_pipeline = PIPELINE_DENSE
-            logger.info(f"Using the index dense")
-        else:
-            logger.info(f"Using the index sparse")
+        elif index == "wikipedia":
+            the_pipeline = PIPELINE_WIKIPEDIA
+            logger.info(f"Using the index wikipedia")
+        logger.info(f"Using the index {index}")
 
         result = _process_request(the_pipeline, request)
         return result

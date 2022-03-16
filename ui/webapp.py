@@ -75,7 +75,10 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         value=DEFAULT_DOCS_FROM_RETRIEVER,
         step=1,
         on_change=reset_results)
-    is_dense = st.sidebar.checkbox("Use dense ES index")
+    search_index = st.sidebar.selectbox(
+        "Index to query",
+        ("sparse", "dense", "wikipedia")
+    )
     eval_mode = st.sidebar.checkbox("Evaluation mode")
     debug = st.sidebar.checkbox("Show debug info")
 
@@ -184,7 +187,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         ):
             try:
                 st.session_state.results, st.session_state.raw_json = query(question, top_k_reader=top_k_reader,
-                                                                            top_k_retriever=top_k_retriever, is_dense=is_dense)
+                                                                            top_k_retriever=top_k_retriever, index=search_index)
             except JSONDecodeError as je:
                 st.error("👓 &nbsp;&nbsp; An error occurred reading the results. Is the document store working?")
                 return
@@ -256,7 +259,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
                             answer_obj=result["_raw"],
                             is_correct_answer=is_correct_answer,
                             is_correct_document=is_correct_document,
-                            is_dense=is_dense,
+                            search_index=search_index,
                             document=result["document"],
                         )
                         st.success("✨ &nbsp;&nbsp; Thanks for your feedback! &nbsp;&nbsp; ✨")

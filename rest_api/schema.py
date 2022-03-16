@@ -50,6 +50,7 @@ class CreateLabelSerialized(BaseModel):
     document: DocumentSerialized
     is_correct_answer: bool
     is_correct_document: bool
+    search_index: str
     origin: Literal["user-feedback", "gold-label"]
     answer: Optional[AnswerSerialized] = None
     no_answer: Optional[bool] = None
