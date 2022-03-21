@@ -131,9 +131,8 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         unsafe_allow_html=True,
     )
 
-    hidden_search_index = st.sidebar.selectbox(
-        "Don't check me"
-    )
+    hidden_search_index = st.sidebar.checkbox("Don't check me")
+
     # Load csv into pandas dataframe
     try:
         df = pd.read_csv(EVAL_LABELS, sep=";")
@@ -194,7 +193,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
             try:
                 if hidden_search_index:
                     search_index = "wikipedia"
-                    
+
                 st.session_state.results, st.session_state.raw_json = query(question, top_k_reader=top_k_reader,
                                                                             top_k_retriever=top_k_retriever, index=search_index)
             except JSONDecodeError as je:
