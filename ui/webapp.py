@@ -67,6 +67,7 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         value=DEFAULT_NUMBER_OF_ANSWERS,
         step=1,
         on_change=reset_results,
+        disabled=True,
     )
     top_k_retriever = st.sidebar.slider(
         "Max. number of documents from retriever",
@@ -74,12 +75,14 @@ Ask any question on Web, BigData, NoSql, Crypto, Software development, AI, IoT, 
         max_value=10,
         value=DEFAULT_DOCS_FROM_RETRIEVER,
         step=1,
-        on_change=reset_results)
+        on_change=reset_results,
+        disabled=True,
+    )
     search_index = st.sidebar.selectbox(
         "Index to query",
         ("sparse", "dense", "wikipedia")
     )
-    eval_mode = st.sidebar.checkbox("Evaluation mode")
+    eval_mode = st.sidebar.checkbox("Evaluation mode", value=True)
     debug = st.sidebar.checkbox("Show debug info")
 
     # File upload block

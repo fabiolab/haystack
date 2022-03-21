@@ -62,8 +62,8 @@ services:
       # DISABLE_FILE_UPLOAD=1 DEFAULT_DOCS_FROM_RETRIEVER=5 docker-compose up
       - DISABLE_FILE_UPLOAD
       - DEFAULT_QUESTION_AT_STARTUP
-      - DEFAULT_DOCS_FROM_RETRIEVER
-      - DEFAULT_NUMBER_OF_ANSWERS
+      - DEFAULT_DOCS_FROM_RETRIEVER=10
+      - DEFAULT_NUMBER_OF_ANSWERS=6
     command: "/bin/bash -c 'sleep 15 && python -m streamlit run ui/webapp.py'"
 
 volumes:
