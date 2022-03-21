@@ -14,13 +14,15 @@ RUN apt-get update && apt-get install -y curl git pkg-config cmake
 # copy code
 RUN mkdir ui/
 COPY setup.py /home/user/ui
-COPY utils.py /home/user/ui
-COPY webapp.py /home/user/ui
-COPY eval_labels_example.csv /home/user/
 
 # install as a package
 RUN pip install --upgrade pip
 RUN pip install ui/
+
+COPY utils.py /home/user/ui
+COPY webapp.py /home/user/ui
+COPY eval_labels_example.csv /home/user/
+
 
 EXPOSE 8501
 
