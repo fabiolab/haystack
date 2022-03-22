@@ -15,9 +15,12 @@
 # EMAIL        : data-ia.aitt-dev-rennes@orange.com
 # ----------------------------------------------------------------------------
 import glob
+import json
 import logging
 import os
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List
 
 import typer
 
@@ -29,10 +32,10 @@ from loguru import logger
 
 
 ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
-SOURCE_FOLDER = "data"
+SOURCE_FOLDER = "data/wikipedia/jo"
 app = typer.Typer()
 
-INDEX_NAME = "dense"
+INDEX_NAME = "wikipedia"
 
 @app.command()
 def feeder(clear_index: bool = typer.Option(False)):
@@ -57,32 +60,28 @@ def feeder(clear_index: bool = typer.Option(False)):
                              split_respect_sentence_boundary=True)
 
     docs = []
-
-    files_pdf = glob.glob(os.path.join(SOURCE_FOLDER, "**/*.pdf"), recursive=True)
-
     compteur = 0
-    for file in files_pdf:
-        compteur += 1
-        logger.info(f"|___ {file}")
-        # Optional: Supply any meta data here
-        # the "name" field will be used by DPR if embed_title=True, rest is custom and can be named arbitrarily
-        cur_meta = {"name": file, "category": "a"}
+    files_json = Path(SOURCE_FOLDER).rglob("**/*")
+    for path in files_json:
+        if not path.is_dir():
+            documents = to_documents(path)
+            compteur += 1
 
-        d = converter.convert(file, meta=cur_meta, encoding="UTF-8")
+            logger.info(f"|___ {path.name}")
 
-        # clean and split each dict (1x doc -> multiple docs)
-        d = processor.process(d)
-        docs.extend(d)
+            # clean and split each dict (1x doc -> multiple docs)
+            d = processor.process(documents)
+            docs.extend(d)
 
-        if compteur % 100 == 0:
-            logger.info("Indexing docs in elastic")
-            document_store.write_documents(docs)
-            docs = []
+            if compteur % 100 == 0:
+                logger.info("Indexing docs in elastic")
+                document_store.write_documents(docs)
+                docs = []
 
     # Now, let's write the docs to our DB.
     document_store.write_documents(docs)
 
-    ### Retriever
+    ## Retriever
     retriever = DensePassageRetriever(document_store=document_store,
                                       query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
                                       passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
@@ -102,5 +101,12 @@ def feeder(clear_index: bool = typer.Option(False)):
     document_store.update_embeddings(retriever)
 
 
+def to_documents(file_path: Path) -> List[Dict]:
+    with open(file_path) as file_json:
+        articles = [{"content":json.loads(article)['text'], "meta": {"name": json.loads(article)['url'], "category": "a"}, "content_type":"text"} for article in file_json.readlines()]
+        return articles
+
+
 if __name__ == "__main__":
     typer.run(feeder)
+
