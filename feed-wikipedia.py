@@ -32,7 +32,7 @@ from loguru import logger
 
 
 ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
-SOURCE_FOLDER = "data/wikipedia/jo"
+SOURCE_FOLDER = "data/wikipedia/tennis"
 app = typer.Typer()
 
 INDEX_NAME = "wikipedia"

@@ -51,6 +51,8 @@ RUN chmod 777 /home/user/rest_api/file-upload
 #COPY data /home/user/data
 COPY data /home/user/data/
 COPY feed-the-beast.py /home/user/
+COPY feed-wikipedia.py /home/user/
+COPY requester.py /home/user/
 
 EXPOSE 8000
 
