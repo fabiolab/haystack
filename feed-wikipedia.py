@@ -42,7 +42,7 @@ def feeder(clear_index: bool = typer.Option(False)):
 
     # ## Document Store
     # Connect to Elasticsearch
-    document_store = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=INDEX_NAME)
+    document_store = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=INDEX_NAME, search_fields=["content","title"])
 
     if clear_index:
         document_store.delete_documents(index=INDEX_NAME)
@@ -56,7 +56,7 @@ def feeder(clear_index: bool = typer.Option(False)):
                              clean_whitespace=True,
                              clean_header_footer=True,
                              split_by="word",
-                             split_length=200,
+                             split_length=1000,
                              split_respect_sentence_boundary=True)
 
     docs = []
@@ -103,7 +103,7 @@ def feeder(clear_index: bool = typer.Option(False)):
 
 def to_documents(file_path: Path) -> List[Dict]:
     with open(file_path) as file_json:
-        articles = [{"content":json.loads(article)['text'], "meta": {"name": json.loads(article)['url'], "category": "a"}, "content_type":"text"} for article in file_json.readlines()]
+        articles = [{"content":json.loads(article)['text'], "title": json.loads(article)['title'], "meta": {"name": json.loads(article)['url'], "category": "a"}, "content_type":"text"} for article in file_json.readlines()]
         return articles
 
 
