@@ -7,7 +7,7 @@ components:    # define all the building-blocks for Pipeline
       host: localhost
       index: wikipedia
   - name: Retriever
-    type: DensePassageRetriever
+    type: ElasticsearchRetriever
     params:
       document_store: DocumentStore    # params can reference other components defined in the YAML
       top_k: 10
