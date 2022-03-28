@@ -6,7 +6,7 @@ components:    # define all the building-blocks for Pipeline
     params:
       host: localhost
       index: wikipedia
-      search_fields: [content,title]
+      search_fields: [content,title.lax]
   - name: Retriever
     type: ElasticsearchRetriever
     params:
