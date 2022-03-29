@@ -21,6 +21,7 @@ RUN pip install ui/
 
 COPY utils.py /home/user/ui
 COPY webapp.py /home/user/ui
+COPY webapp_arod.py /home/user/ui
 COPY eval_labels_example.csv /home/user/
 
 
