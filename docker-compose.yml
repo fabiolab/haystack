@@ -76,7 +76,7 @@ services:
       dockerfile: Dockerfile
     image: "deepset/haystack-streamlit-ui:latest"
     ports:
-      - 8501:8502
+      - 8502:8501
     restart: on-failure
     environment:
       #- API_ENDPOINT=http://haystack-api:8000
