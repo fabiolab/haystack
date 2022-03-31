@@ -77,7 +77,7 @@ This demo takes its data from a set of documents, dealing with
     )
     search_index = st.sidebar.selectbox(
         "Index to query",
-        ("wikipedia", "jo")
+        ("wikipedia", "jo", "plazza")
     )
     eval_mode = st.sidebar.checkbox("Evaluation mode", value=False)
     debug = st.sidebar.checkbox("Show debug info")
