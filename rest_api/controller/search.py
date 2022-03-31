@@ -32,7 +32,7 @@ router = APIRouter()
 PIPELINE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
 PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
 PIPELINE_WIKIPEDIA = Pipeline.load_from_yaml(Path(PIPELINE_WIKIPEDIA_YAML_PATH), pipeline_name=QUERY_PIPELINE_WIKIPEDIA_NAME)
-PIPELINE_JO = Pipeline.load_from_yaml(Path(PIPELINE_JO_YAML_PATH), pipeline_name=QUERY_PIPELINE_JO_NAME)
+# PIPELINE_JO = Pipeline.load_from_yaml(Path(PIPELINE_JO_YAML_PATH), pipeline_name=QUERY_PIPELINE_JO_NAME)
 PIPELINE_PLAZZA = Pipeline.load_from_yaml(Path(PIPELINE_PLAZZA_YAML_PATH), pipeline_name=QUERY_PIPELINE_PLAZZA_NAME)
 
 DOCUMENT_STORE = PIPELINE.get_document_store()
@@ -75,9 +75,9 @@ def query(request: QueryRequest, index: str = "sparse"):
         elif index == "wikipedia":
             the_pipeline = PIPELINE_WIKIPEDIA
             logger.info(f"Using the index wikipedia")
-        elif index == "jo":
-            the_pipeline = PIPELINE_JO
-            logger.info(f"Using the index jo")
+        # elif index == "jo":
+        #     the_pipeline = PIPELINE_JO
+        #     logger.info(f"Using the index jo")
         elif index == "plazza":
             the_pipeline = PIPELINE_PLAZZA
             logger.info(f"Using the index plazza")
