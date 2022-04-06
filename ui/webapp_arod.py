@@ -77,7 +77,8 @@ This demo takes its data from a set of documents, dealing with
     )
 
     def change_pipeline():
-        set_index(search_index)
+        st.session_state.index_changed = True
+        # set_index(search_index)
 
     search_index = st.sidebar.selectbox(
         "Index to query",
@@ -182,6 +183,10 @@ This demo takes its data from a set of documents, dealing with
 
     # Get results for query
     if run_query and question:
+        if st.session_state.index_changed:
+            set_index(search_index)
+            st.session_state.index_changed = False
+
         reset_results()
         st.session_state.question = question
 
