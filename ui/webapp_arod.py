@@ -41,6 +41,8 @@ def main():
     set_state_if_absent("results", None)
     set_state_if_absent("raw_json", None)
     set_state_if_absent("random_question_requested", False)
+    set_state_if_absent("index_changed", True)
+
 
     # Small callback to reset the interface in case the text of the question changes
     def reset_results(*args):
@@ -78,7 +80,6 @@ This demo takes its data from a set of documents, dealing with
 
     def change_pipeline():
         st.session_state.index_changed = True
-        # set_index(search_index)
 
     search_index = st.sidebar.selectbox(
         "Index to query",
