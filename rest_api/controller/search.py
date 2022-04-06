@@ -41,7 +41,7 @@ retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
 # Reader: Powerful but slower neural network trained for QA
 model_name = "deepset/xlm-roberta-large-squad2"
-reader = FARMReader(model_name)
+reader = FARMReader(model_name, context_window_size=1000, return_no_answer=True)
 
 # Pipeline: Combines all the components
 PIPELINE = ExtractiveQAPipeline(reader, retriever)
