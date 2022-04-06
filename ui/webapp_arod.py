@@ -8,7 +8,7 @@ import streamlit as st
 from annotated_text import annotation
 from markdown import markdown
 
-from ui.utils import haystack_is_ready, query, send_feedback, upload_doc, haystack_version, get_backlink
+from ui.utils import haystack_is_ready, query, send_feedback, set_index, upload_doc, haystack_version, get_backlink
 
 
 # Adjust to a question that you would like users to see in the search bar when they load the UI:
@@ -75,9 +75,14 @@ This demo takes its data from a set of documents, dealing with
         step=1,
         on_change=reset_results,
     )
+
+    def change_pipeline():
+        set_index(search_index)
+
     search_index = st.sidebar.selectbox(
         "Index to query",
-        ("wikipedia", "jo", "plazza")
+        ("wikipedia", "jo", "plazza"),
+        on_change=change_pipeline
     )
     eval_mode = st.sidebar.checkbox("Evaluation mode", value=False)
     debug = st.sidebar.checkbox("Show debug info")

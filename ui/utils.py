@@ -40,6 +40,16 @@ def haystack_version():
     return requests.get(url, timeout=0.1).json()["hs_version"]
 
 
+def set_index(index:str):
+    url = f"{API_ENDPOINT}/set_index"
+    query_params = {'index_name': index}
+
+    response_raw = requests.post(url, params=query_params)
+
+    if response_raw.status_code >= 400 and response_raw.status_code != 503:
+        raise Exception(f"{vars(response_raw)}")
+
+
 def query(query, filters={}, top_k_reader=5, top_k_retriever=5, index: str = "sparse") -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     """
     Send a query to the REST API and parse the answer.
