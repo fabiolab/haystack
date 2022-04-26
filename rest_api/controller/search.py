@@ -46,8 +46,8 @@ reader = FARMReader(model_name, context_window_size=1000, return_no_answer=True)
 # Pipeline: Combines all the components
 PIPELINE = ExtractiveQAPipeline(reader, retriever)
 
-PIPELINE_SPARSE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
-PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
+# PIPELINE_SPARSE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
+# PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
 # PIPELINE_WIKIPEDIA = Pipeline.load_from_yaml(Path(PIPELINE_WIKIPEDIA_YAML_PATH), pipeline_name=QUERY_PIPELINE_WIKIPEDIA_NAME)
 # PIPELINE_JO = Pipeline.load_from_yaml(Path(PIPELINE_JO_YAML_PATH), pipeline_name=QUERY_PIPELINE_JO_NAME)
 # PIPELINE_PLAZZA = Pipeline.load_from_yaml(Path(PIPELINE_PLAZZA_YAML_PATH), pipeline_name=QUERY_PIPELINE_PLAZZA_NAME)
@@ -104,13 +104,13 @@ def query(request: QueryRequest, index: str = "sparse"):
     with concurrency_limiter.run():
         the_pipeline = PIPELINE
         if index == "dense":
-            the_pipeline = PIPELINE_DENSE
-            DOCUMENT_STORE = PIPELINE.get_document_store()
+            the_pipeline = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
+            DOCUMENT_STORE = the_pipeline.get_document_store()
             retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
         elif index == "sparse":
-            the_pipeline = PIPELINE_SPARSE
-            DOCUMENT_STORE = PIPELINE.get_document_store()
+            the_pipeline = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
+            DOCUMENT_STORE = the_pipeline.get_document_store()
             retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
         else:
