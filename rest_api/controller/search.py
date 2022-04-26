@@ -46,8 +46,8 @@ reader = FARMReader(model_name, context_window_size=1000, return_no_answer=True)
 # Pipeline: Combines all the components
 PIPELINE = ExtractiveQAPipeline(reader, retriever)
 
-# PIPELINE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
-# PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
+PIPELINE_SPARSE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
+PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
 # PIPELINE_WIKIPEDIA = Pipeline.load_from_yaml(Path(PIPELINE_WIKIPEDIA_YAML_PATH), pipeline_name=QUERY_PIPELINE_WIKIPEDIA_NAME)
 # PIPELINE_JO = Pipeline.load_from_yaml(Path(PIPELINE_JO_YAML_PATH), pipeline_name=QUERY_PIPELINE_JO_NAME)
 # PIPELINE_PLAZZA = Pipeline.load_from_yaml(Path(PIPELINE_PLAZZA_YAML_PATH), pipeline_name=QUERY_PIPELINE_PLAZZA_NAME)
@@ -82,6 +82,9 @@ def haystack_version():
 @router.post("/set_index")
 def set_index(index_name: str):
     global DOCUMENT_STORE, retriever, PIPELINE
+
+    # Pipeline: Combines all the components
+    PIPELINE = ExtractiveQAPipeline(reader, retriever)
     # DocumentStore: holds all your data
     DOCUMENT_STORE = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index_name,
                                                 search_fields=["content", "title.lax", "content_en"])
@@ -89,32 +92,36 @@ def set_index(index_name: str):
     # Retriever: A Fast and simple algo to identify the most promising candidate documents
     retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
-    # Pipeline: Combines all the components
-    PIPELINE = ExtractiveQAPipeline(reader, retriever)
-
 
 @router.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
 def query(request: QueryRequest, index: str = "sparse"):
+    global DOCUMENT_STORE, retriever
+
     """
     This endpoint receives the question as a string and allows the requester to set
     additional parameters that will be passed on to the Haystack pipeline.
     """
     with concurrency_limiter.run():
-        # the_pipeline = PIPELINE
-        # if index == "dense":
-        #     the_pipeline = PIPELINE_DENSE
-        # elif index == "wikipedia":
-        #     the_pipeline = PIPELINE_WIKIPEDIA
-        #     logger.info(f"Using the index wikipedia")
-        # # elif index == "jo":
-        # #     the_pipeline = PIPELINE_JO
-        # #     logger.info(f"Using the index jo")
-        # elif index == "plazza":
-        #     the_pipeline = PIPELINE_PLAZZA
-        #     logger.info(f"Using the index plazza")
-        # logger.info(f"Using the index {index}")
+        the_pipeline = PIPELINE
+        if index == "dense":
+            the_pipeline = PIPELINE_DENSE
+            DOCUMENT_STORE = PIPELINE.get_document_store()
+            retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
-        result = _process_request(PIPELINE, request)
+        elif index == "sparse":
+            the_pipeline = PIPELINE_SPARSE
+            DOCUMENT_STORE = PIPELINE.get_document_store()
+            retriever = ElasticsearchRetriever(DOCUMENT_STORE)
+
+        else:
+            the_pipeline = ExtractiveQAPipeline(reader, retriever)
+            DOCUMENT_STORE = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index,
+                                                        search_fields=["content", "title.lax", "content_en"])
+
+        # Retriever: A Fast and simple algo to identify the most promising candidate documents
+        retriever = ElasticsearchRetriever(DOCUMENT_STORE)
+
+        result = _process_request(the_pipeline, request)
         return result
 
 

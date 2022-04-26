@@ -11,6 +11,14 @@ components:    # define all the building-blocks for Pipeline
     params:
       document_store: DocumentStore    # params can reference other components defined in the YAML
       top_k: 10
+      query_embedding_model: voidful/dpr-question_encoder-bert-base-multilingual
+      passage_embedding_model: voidful/dpr-ctx_encoder-bert-base-multilingual
+      max_seq_len_query: 64,
+      max_seq_len_passage: 256,
+      batch_size: 16,
+      use_gpu: True,
+      embed_title: True,
+      use_fast_tokenizers: True
   - name: Reader       # custom-name for the component; helpful for visualization & debugging
     type: FARMReader    # Haystack Class name for the component
     params:
