@@ -131,7 +131,7 @@ def query(request: QueryRequest, index: str = "sparse"):
 
                 retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
-                model_name = "deepsetxlm-roberta-large-squad2"
+                model_name = "deepset/xlm-roberta-large-squad2"
                 reader = FARMReader(model_name, context_window_size=1000, return_no_answer=True)
                 PIPELINE = ExtractiveQAPipeline(reader, retriever)
 
