@@ -72,3 +72,4 @@ PyYAML
 pydantic
 starlette
 loguru
+langdetect

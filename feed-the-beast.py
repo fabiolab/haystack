@@ -26,6 +26,7 @@ from haystack.nodes import DensePassageRetriever
 from haystack.nodes.file_converter.pdf import PDFToTextConverter
 from haystack.nodes.preprocessor import PreProcessor
 from loguru import logger
+from langdetect import detect
 
 
 ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
@@ -33,6 +34,7 @@ SOURCE_FOLDER = "data"
 app = typer.Typer()
 
 INDEX_NAME = "dense"
+
 
 @app.command()
 def feeder(clear_index: bool = typer.Option(False)):
@@ -49,12 +51,14 @@ def feeder(clear_index: bool = typer.Option(False)):
 
     # TODO: Vérifier les paramètres de préprocessing. Split length => 200 ? Split_by "passage" ?
     # https://haystack.deepset.ai/components/preprocessing
-    processor = PreProcessor(clean_empty_lines=True,
-                             clean_whitespace=True,
-                             clean_header_footer=True,
-                             split_by="word",
-                             split_length=200,
-                             split_respect_sentence_boundary=True)
+    processor = PreProcessor(
+        clean_empty_lines=True,
+        clean_whitespace=True,
+        clean_header_footer=True,
+        split_by="word",
+        split_length=200,
+        split_respect_sentence_boundary=True,
+    )
 
     docs = []
 
@@ -72,6 +76,10 @@ def feeder(clear_index: bool = typer.Option(False)):
 
         # clean and split each dict (1x doc -> multiple docs)
         d = processor.process(d)
+
+        if detect(d["content"]) == "en":
+            d["content_en"] = d.pop("content")
+
         docs.extend(d)
 
         if compteur % 100 == 0:
@@ -83,16 +91,17 @@ def feeder(clear_index: bool = typer.Option(False)):
     document_store.write_documents(docs)
 
     ### Retriever
-    retriever = DensePassageRetriever(document_store=document_store,
-                                      query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
-                                      passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
-                                      max_seq_len_query=64,
-                                      max_seq_len_passage=200,
-                                      batch_size=2,
-                                      use_gpu=True,
-                                      embed_title=True,
-                                      use_fast_tokenizers=True
-                                      )
+    retriever = DensePassageRetriever(
+        document_store=document_store,
+        query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
+        passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
+        max_seq_len_query=64,
+        max_seq_len_passage=200,
+        batch_size=2,
+        use_gpu=True,
+        embed_title=True,
+        use_fast_tokenizers=True,
+    )
 
     # Important:
     # Now that after we have the DPR initialized, we need to call update_embeddings() to iterate over all
