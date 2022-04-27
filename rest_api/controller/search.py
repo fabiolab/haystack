@@ -45,8 +45,7 @@ reader = FARMReader(model_name, context_window_size=1000, return_no_answer=True)
 
 # Pipeline: Combines all the components
 PIPELINE = ExtractiveQAPipeline(reader, retriever)
-
-PIPELINE_SPARSE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
+# PIPELINE_SPARSE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=QUERY_PIPELINE_NAME)
 PIPELINE_DENSE = Pipeline.load_from_yaml(Path(PIPELINE_DENSE_YAML_PATH), pipeline_name=QUERY_PIPELINE_DENSE_NAME)
 # PIPELINE_WIKIPEDIA = Pipeline.load_from_yaml(Path(PIPELINE_WIKIPEDIA_YAML_PATH), pipeline_name=QUERY_PIPELINE_WIKIPEDIA_NAME)
 # PIPELINE_JO = Pipeline.load_from_yaml(Path(PIPELINE_JO_YAML_PATH), pipeline_name=QUERY_PIPELINE_JO_NAME)
@@ -102,24 +101,21 @@ def query(request: QueryRequest, index: str = "sparse"):
     additional parameters that will be passed on to the Haystack pipeline.
     """
     with concurrency_limiter.run():
-        the_pipeline = PIPELINE
         if index == "dense":
             the_pipeline = PIPELINE_DENSE
-            DOCUMENT_STORE = the_pipeline.get_document_store()
-            retriever = ElasticsearchRetriever(DOCUMENT_STORE)
-
         elif index == "sparse":
-            the_pipeline = PIPELINE_SPARSE
-            DOCUMENT_STORE = the_pipeline.get_document_store()
-            retriever = ElasticsearchRetriever(DOCUMENT_STORE)
-
+            the_pipeline = PIPELINE_DENSE
+            # the_pipeline = PIPELINE_SPARSE
         else:
-            the_pipeline = ExtractiveQAPipeline(reader, retriever)
-            DOCUMENT_STORE = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index,
-                                                        search_fields=["content", "title.lax", "content_en"])
-
-        # Retriever: A Fast and simple algo to identify the most promising candidate documents
-        retriever = ElasticsearchRetriever(DOCUMENT_STORE)
+            doc_store = PIPELINE.get_document_store()
+            doc_store.index = index
+            doc_store.set_config(index=index)
+            the_pipeline = PIPELINE
+            # DOCUMENT_STORE = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index,
+            #                                             search_fields=["content", "title.lax", "content_en"])
+            #
+            # # Retriever: A Fast and simple algo to identify the most promising candidate documents
+            # retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
         result = _process_request(the_pipeline, request)
         return result
