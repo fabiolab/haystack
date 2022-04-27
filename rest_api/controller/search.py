@@ -40,13 +40,13 @@ BaseConfig.arbitrary_types_allowed = True
 
 router = APIRouter()
 
-# ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
-#
-# # DocumentStore: holds all your data
-# DOCUMENT_STORE = ElasticsearchDocumentStore(
-#     host=ELASTIC_HOST, username="", password="", search_fields=["content", "title.lax", "content_en"]
-# )
-#
+ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
+
+# DocumentStore: holds all your data
+DOCUMENT_STORE = ElasticsearchDocumentStore(
+    host=ELASTIC_HOST, username="", password="", search_fields=["content", "title.lax", "content_en"]
+)
+
 # # Retriever: A Fast and simple algo to identify the most promising candidate documents
 # retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
@@ -128,10 +128,7 @@ def query(request: QueryRequest, index: str = "sparse"):
             the_pipeline = PIPELINE_SPARSE
         else:
             if not PIPELINE:
-                ELASTIC_HOST = "yd-deskin-demo.rd.francetelecom.fr"
-                DOCUMENT_STORE = ElasticsearchDocumentStore(
-                    host=ELASTIC_HOST, username="", password="", search_fields=["content", "title.lax", "content_en"]
-                )
+
                 retriever = ElasticsearchRetriever(DOCUMENT_STORE)
 
                 model_name = "deepsetxlm-roberta-large-squad2"
