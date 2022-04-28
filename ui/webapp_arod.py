@@ -159,21 +159,22 @@ This demo takes its data from a set of documents, dealing with
     if col2.button("Random question"):
         reset_results()
         new_row = df.sample(1)
-        while (
-            new_row["Question Text"].values[0] == st.session_state.question
-        ):  # Avoid picking the same question twice (the change is not visible on the UI)
-            new_row = df.sample(1)
+        # while (
+        #     new_row["Question Text"].values[0] == st.session_state.question
+        # ):  # Avoid picking the same question twice (the change is not visible on the UI)
+        #     new_row = df.sample(1)
         st.session_state.question = new_row["Question Text"].values[0]
         st.session_state.answer = new_row["Answer"].values[0]
         st.session_state.random_question_requested = True
         # Re-runs the script setting the random question as the textbox value
         # Unfortunately necessary as the Random Question button is _below_ the textbox
-        raise st.script_runner.RerunException(st.script_request_queue.RerunData(None))
+        # raise st.script_runner.RerunException(st.script_request_queue.RerunData(None))
     st.session_state.random_question_requested = False
 
-    run_query = (
-        run_pressed or question != st.session_state.question
-    ) and not st.session_state.random_question_requested
+    run_query = run_pressed
+    # run_query = (
+    #     run_pressed or question != st.session_state.question
+    # ) and not st.session_state.random_question_requested
 
     # Check the connection
     with st.spinner("⌛️ &nbsp;&nbsp; Haystack is starting..."):
