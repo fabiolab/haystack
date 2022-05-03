@@ -33,7 +33,7 @@ def set_state_if_absent(key, value):
 
 def main():
 
-    st.set_page_config(page_title="Wikipedia Sport", page_icon="https://haystack.deepset.ai/img/HaystackIcon.png")
+    st.set_page_config(page_title="Find!", page_icon="https://haystack.deepset.ai/img/HaystackIcon.png")
 
     # Persistent state
     set_state_if_absent("question", DEFAULT_QUESTION_AT_STARTUP)
@@ -51,11 +51,9 @@ def main():
         st.session_state.raw_json = None
 
     # Title
-    st.write("# Wikipedia Sport Q/A")
+    st.write("# Find!")
     st.markdown("""
-This demo takes its data from a set of documents, dealing with 
-<h3 style='text-align:center;padding: 0 0 1rem;'>Olympic Games or Tennis</h3>
-
+This demo takes its data from a set of documents, crawled from plazza OLU
 *Note: do not use keywords, but full-fledged questions.* The stack is not optimized to deal with keyword queries and might misunderstand you.
 """, unsafe_allow_html=True)
 
@@ -83,7 +81,7 @@ This demo takes its data from a set of documents, dealing with
 
     search_index = st.sidebar.selectbox(
         "Index to query",
-        ("wikipedia", "jo", "plazza"),
+        ("plazza", "wikipedia", "jo"),
         on_change=change_pipeline
     )
     eval_mode = st.sidebar.checkbox("Evaluation mode", value=False)
