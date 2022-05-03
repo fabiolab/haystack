@@ -21,16 +21,20 @@ app = typer.Typer()
 @app.command()
 def feeder(index: str, source_dir_path: str, clear_index: bool = typer.Option(False)):
     logger.info(f"Feed the index {index} on {ELASTIC_HOST} with data from {source_dir_path}")
-    document_store = ElasticsearchDocumentStore(host=ELASTIC_HOST, username="", password="", index=index, search_fields=["content", "title"])
+    document_store = ElasticsearchDocumentStore(
+        host=ELASTIC_HOST, username="", password="", index=index, search_fields=["content", "title.lax"]
+    )
     if clear_index:
         document_store.delete_documents(index=index)
 
-    processor = PreProcessor(clean_empty_lines=True,
-                             clean_whitespace=True,
-                             clean_header_footer=True,
-                             split_by="word",
-                             split_length=1000,
-                             split_respect_sentence_boundary=True)
+    processor = PreProcessor(
+        clean_empty_lines=True,
+        clean_whitespace=True,
+        clean_header_footer=True,
+        split_by="word",
+        split_length=1000,
+        split_respect_sentence_boundary=True,
+    )
 
     docs = []
     compteur = 0
@@ -50,10 +54,17 @@ def feeder(index: str, source_dir_path: str, clear_index: bool = typer.Option(Fa
 
 def to_documents(file_path: Path) -> List[Dict]:
     with open(file_path) as file_json:
-        articles = [{"content":json.loads(article)['text'], "title": json.loads(article)['title'], "meta": {"name": json.loads(article)['url'], "category": "a"}, "content_type":"text"} for article in file_json.readlines()]
+        articles = [
+            {
+                "content": json.loads(article)["text"],
+                "title": json.loads(article)["title"],
+                "meta": {"name": json.loads(article)["url"], "category": "a"},
+                "content_type": "text",
+            }
+            for article in file_json.readlines()
+        ]
         return articles
 
 
 if __name__ == "__main__":
     typer.run(feeder)
-

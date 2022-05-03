@@ -77,10 +77,17 @@ def feeder(clear_index: bool = typer.Option(False)):
         # clean and split each dict (1x doc -> multiple docs)
         d = processor.process(d)
 
-        if detect(d["content"]) == "en":
-            d["content_en"] = d.pop("content")
+        multilanguage_d = []
+        for single_doc in d:
+            try:
+                if detect(single_doc["content"]) == "en":
+                    single_doc["content_en"] = single_doc["content"]
+            except Exception as e:
+                logger.error(f"Can't get language from {single_doc['content']}")
 
-        docs.extend(d)
+            multilanguage_d.append(single_doc)
+
+        docs.extend(multilanguage_d)
 
         if compteur % 100 == 0:
             logger.info("Indexing docs in elastic")
@@ -93,11 +100,13 @@ def feeder(clear_index: bool = typer.Option(False)):
     ### Retriever
     retriever = DensePassageRetriever(
         document_store=document_store,
-        query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
-        passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
+        query_embedding_model="voidful/dpr-question_encoder-bert-base-multilingual",
+        passage_embedding_model="voidful/dpr-ctx_encoder-bert-base-multilingual",
+        # query_embedding_model="facebook/dpr-question_encoder-single-nq-base",
+        # passage_embedding_model="facebook/dpr-ctx_encoder-single-nq-base",
         max_seq_len_query=64,
-        max_seq_len_passage=200,
-        batch_size=2,
+        max_seq_len_passage=256,
+        batch_size=16,
         use_gpu=True,
         embed_title=True,
         use_fast_tokenizers=True,
